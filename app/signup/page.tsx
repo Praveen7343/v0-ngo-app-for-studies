@@ -36,11 +36,11 @@ export default function SignUpPage() {
     diplomaPin: "",
     diplomaPercentage: "",
     // B.Tech
-    collegeName: "",
-    branch: "",
-    bTechYearOfStudying: "",
-    bTechPin: "",
-    cgpaPercentage: "",
+    btechCollegeName: "",
+    btechBranch: "",
+    btechYearOfStudying: "",
+    btechPin: "",
+    btechCgpaPercentage: "",
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -51,141 +51,114 @@ export default function SignUpPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
 
-    // Validate step 1
-    if (step === 1) {
-      if (!formData.fullName.trim() || !formData.fatherName.trim() || !formData.motherName.trim()) {
-        setError("Please fill in all personal details")
-        return
-      }
-      if (!formData.dateOfBirth || !formData.gender) {
-        setError("Please fill in date of birth and gender")
-        return
-      }
-      if (!formData.mobileNumber.trim() || !/^\d{10}$/.test(formData.mobileNumber)) {
-        setError("Please enter a valid 10-digit mobile number")
-        return
-      }
-      if (!formData.emailId.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailId)) {
-        setError("Please enter a valid email address")
-        return
-      }
-      if (!formData.address.trim()) {
-        setError("Please enter your address")
-        return
-      }
-      setStep(2)
+    // Validate form data
+    if (!formData.fullName) {
+      alert("Please enter your full name")
       return
     }
 
-    // Validate step 2
-    if (step === 2) {
-      if (!formData.schoolName.trim() || !formData.board.trim()) {
-        setError("Please fill in SSC school details")
-        return
-      }
-      if (!formData.sscYearOfPassing.trim() || !formData.sscPercentage.trim()) {
-        setError("Please fill in SSC year and percentage")
-        return
-      }
-      if (!formData.diplomaCollegeName.trim() || !formData.diplomaBranch.trim()) {
-        setError("Please fill in Diploma college details")
-        return
-      }
-      if (!formData.diplomaYearOfStudying.trim() || !formData.diplomaPin.trim()) {
-        setError("Please fill in Diploma year and PIN")
-        return
-      }
-      if (!formData.diplomaPercentage.trim()) {
-        setError("Please fill in Diploma percentage")
-        return
-      }
-      setStep(3)
-      return
-    }
-
-    // Validate step 3 and submit
-    if (step === 3) {
-      const hasAnyBTechData =
-        formData.collegeName.trim() ||
-        formData.branch.trim() ||
-        formData.bTechYearOfStudying.trim() ||
-        formData.bTechPin.trim() ||
-        formData.cgpaPercentage.trim()
-
-      if (hasAnyBTechData) {
-        if (!formData.collegeName.trim() || !formData.branch.trim()) {
-          setError("Please fill in all B.Tech college details or leave all empty")
-          return
-        }
-        if (!formData.bTechYearOfStudying.trim() || !formData.bTechPin.trim()) {
-          setError("Please fill in all B.Tech year and PIN or leave all empty")
-          return
-        }
-        if (!formData.cgpaPercentage.trim()) {
-          setError("Please fill in B.Tech CGPA/Percentage or leave all empty")
-          return
-        }
-      }
-
-      setIsLoading(true)
-
+    try {
       const generatedTrustId = Math.random().toString().slice(2, 10).padEnd(8, "0")
       setTrustId(generatedTrustId)
 
-      const registrations = JSON.parse(localStorage.getItem("pssRegistrations") || "[]")
-      const newRegistration = {
-        // Personal Information
-        studentName: formData.fullName,
-        fullName: formData.fullName,
-        fatherName: formData.fatherName,
-        motherName: formData.motherName,
-        dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender,
-        mobileNumber: formData.mobileNumber,
-        emailId: formData.emailId,
-        address: formData.address,
-
-        // SSC Details
-        ssc: {
-          schoolName: formData.schoolName,
-          board: formData.board,
-          yearOfPassing: formData.sscYearOfPassing,
-          percentage: formData.sscPercentage,
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-
-        // Diploma Details
-        diploma: {
-          collegeName: formData.diplomaCollegeName,
-          branch: formData.diplomaBranch,
-          yearOfStudying: formData.diplomaYearOfStudying,
-          pinNumber: formData.diplomaPin,
-          percentage: formData.diplomaPercentage,
-        },
-
-        // B.Tech Details (only if provided)
-        ...(formData.collegeName && {
-          btech: {
-            collegeName: formData.collegeName,
-            branch: formData.branch,
-            yearOfStudying: formData.bTechYearOfStudying,
-            pinNumber: formData.bTechPin,
-            percentage: formData.cgpaPercentage,
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          trustId: generatedTrustId,
+          fatherName: formData.fatherName,
+          motherName: formData.motherName,
+          dateOfBirth: formData.dateOfBirth,
+          gender: formData.gender,
+          mobileNumber: formData.mobileNumber,
+          emailId: formData.emailId,
+          address: formData.address,
+          ssc: {
+            schoolName: formData.schoolName,
+            board: formData.board,
+            yearOfPassing: formData.sscYearOfPassing,
+            percentage: formData.sscPercentage,
           },
+          diploma: {
+            collegeName: formData.diplomaCollegeName,
+            branch: formData.diplomaBranch,
+            yearOfStudying: formData.diplomaYearOfStudying,
+            pinNumber: formData.diplomaPin,
+            percentage: formData.diplomaPercentage,
+          },
+          ...(formData.btechCollegeName && {
+            btech: {
+              collegeName: formData.btechCollegeName,
+              branch: formData.btechBranch,
+              yearOfStudying: formData.btechYearOfStudying,
+              cgpaPercentage: formData.btechCgpaPercentage,
+              pinNumber: formData.btechPin,
+            },
+          }),
         }),
+      })
 
-        trustId: generatedTrustId,
-        registrationDate: new Date(),
+      if (!response.ok) {
+        throw new Error("Registration failed")
       }
 
-      registrations.push(newRegistration)
+      // Also save to localStorage for backward compatibility
+      const registrations = JSON.parse(localStorage.getItem("pssRegistrations") || "[]")
+      registrations.push({
+        fullName: formData.fullName,
+        trustId: generatedTrustId,
+        personal: {
+          fatherName: formData.fatherName,
+          motherName: formData.motherName,
+          dateOfBirth: formData.dateOfBirth,
+          gender: formData.gender,
+          mobileNumber: formData.mobileNumber,
+          emailId: formData.emailId,
+          address: formData.address,
+        },
+        ssc:
+          formData.schoolName || formData.board
+            ? {
+                schoolName: formData.schoolName,
+                board: formData.board,
+                yearOfPassing: formData.sscYearOfPassing,
+                percentage: formData.sscPercentage,
+              }
+            : null,
+        diploma:
+          formData.diplomaCollegeName || formData.diplomaBranch
+            ? {
+                collegeName: formData.diplomaCollegeName,
+                branch: formData.diplomaBranch,
+                yearOfStudying: formData.diplomaYearOfStudying,
+                pin: formData.diplomaPin,
+                percentage: formData.diplomaPercentage,
+              }
+            : null,
+        btech:
+          formData.btechCollegeName || formData.btechBranch
+            ? {
+                collegeName: formData.btechCollegeName,
+                branch: formData.btechBranch,
+                yearOfStudying: formData.btechYearOfStudying,
+                percentage: formData.btechCgpaPercentage,
+                pin: formData.btechPin,
+              }
+            : null,
+        createdAt: new Date().toISOString(),
+      })
       localStorage.setItem("pssRegistrations", JSON.stringify(registrations))
 
-      setShowSuccess(true)
-      setIsLoading(false)
+      setStep(4)
+    } catch (error) {
+      console.error("[v0] Registration error:", error)
+      alert("Registration failed. Please try again.")
     }
   }
 
@@ -533,8 +506,8 @@ export default function SignUpPage() {
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-foreground">College/University</label>
                     <Input
-                      name="collegeName"
-                      value={formData.collegeName}
+                      name="btechCollegeName"
+                      value={formData.btechCollegeName}
                       onChange={handleInputChange}
                       placeholder="Enter college name (optional)"
                       className="w-full border-border"
@@ -543,8 +516,8 @@ export default function SignUpPage() {
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-foreground">Branch</label>
                     <Input
-                      name="branch"
-                      value={formData.branch}
+                      name="btechBranch"
+                      value={formData.btechBranch}
                       onChange={handleInputChange}
                       placeholder="Enter branch (optional)"
                       className="w-full border-border"
@@ -556,8 +529,8 @@ export default function SignUpPage() {
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-foreground">Year of Studying</label>
                     <Input
-                      name="bTechYearOfStudying"
-                      value={formData.bTechYearOfStudying}
+                      name="btechYearOfStudying"
+                      value={formData.btechYearOfStudying}
                       onChange={handleInputChange}
                       placeholder="Enter year (optional)"
                       className="w-full border-border"
@@ -566,8 +539,8 @@ export default function SignUpPage() {
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-foreground">PIN Number</label>
                     <Input
-                      name="bTechPin"
-                      value={formData.bTechPin}
+                      name="btechPin"
+                      value={formData.btechPin}
                       onChange={handleInputChange}
                       placeholder="Enter PIN (optional)"
                       className="w-full border-border"
@@ -578,13 +551,23 @@ export default function SignUpPage() {
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-foreground">CGPA/Percentage (Till Now)</label>
                   <Input
-                    name="cgpaPercentage"
-                    value={formData.cgpaPercentage}
+                    name="btechCgpaPercentage"
+                    value={formData.btechCgpaPercentage}
                     onChange={handleInputChange}
                     placeholder="Enter CGPA or percentage (optional)"
                     className="w-full border-border"
                   />
                 </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="space-y-5">
+                <h1 className="font-playfair text-2xl font-bold text-foreground mb-2">Registration Complete!</h1>
+                <p className="text-muted-foreground mb-6">Thank you for registering with PSS Trust.</p>
+                <Link href="/login">
+                  <Button className="w-full">Go to Login</Button>
+                </Link>
               </div>
             )}
 
@@ -603,7 +586,7 @@ export default function SignUpPage() {
                 </Button>
               )}
               <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? "Processing..." : step === 3 ? "Complete Registration" : "Next"}
+                {isLoading ? "Processing..." : step === 4 ? "Login" : "Next"}
               </Button>
             </div>
           </form>

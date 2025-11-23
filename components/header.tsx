@@ -28,14 +28,14 @@ export default function Header() {
           <a href="#impact" className="text-foreground hover:text-primary transition-colors">
             Impact
           </a>
-          <a href="#testimonials" className="text-foreground hover:text-primary transition-colors">
-            Stories
-          </a>
         </div>
 
         <div className="hidden md:flex items-center gap-4">
           <Link href="/login">
-            <Button variant="outline">Log In</Button>
+            <Button variant="outline">Student Login</Button>
+          </Link>
+          <Link href="/chairman-login">
+            <Button variant="outline">Chairman Login</Button>
           </Link>
           <Link href="/signup">
             <Button className="bg-primary hover:bg-primary/90">Sign Up</Button>
@@ -57,12 +57,14 @@ export default function Header() {
             <a href="#impact" className="block text-foreground hover:text-primary">
               Impact
             </a>
-            <a href="#testimonials" className="block text-foreground hover:text-primary">
-              Stories
-            </a>
             <Link href="/login">
               <Button variant="outline" className="w-full bg-transparent">
-                Log In
+                Student Login
+              </Button>
+            </Link>
+            <Link href="/chairman-login">
+              <Button variant="outline" className="w-full bg-transparent">
+                Chairman Login
               </Button>
             </Link>
             <Link href="/signup">
