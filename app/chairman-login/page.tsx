@@ -10,7 +10,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export default function ChairmanLoginPage() {
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("") // changed email to username
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
@@ -21,17 +21,18 @@ export default function ChairmanLoginPage() {
     setIsLoading(true)
 
     setTimeout(() => {
-      if (!email.trim() || !password.trim()) {
+      if (!username.trim() || !password.trim()) {
+        // changed email to username
         setError("Please fill in all fields")
         setIsLoading(false)
         return
       }
 
       // Demo credentials
-      if (email === "admin@pss.org" && password === "Admin@123") {
+      if (username === "srinivas" && password === "srinivas123") {
         const chairmanData = {
           id: "chairman-1",
-          email: email,
+          username: username,
           fullName: "Dr (H.C) P Srinivas",
           role: "chairman",
           loginTime: new Date(),
@@ -39,7 +40,7 @@ export default function ChairmanLoginPage() {
         localStorage.setItem("pssChairman", JSON.stringify(chairmanData))
         window.location.href = "/admin"
       } else {
-        setError("Invalid email or password")
+        setError("Invalid username or password")
         setIsLoading(false)
       }
     }, 1000)
@@ -89,17 +90,17 @@ export default function ChairmanLoginPage() {
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>
             )}
 
-            {/* Email Field */}
+            {/* Username Field */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-foreground">
-                Email Address
+              <label htmlFor="username" className="block text-sm font-medium text-foreground">
+                Username
               </label>
               <Input
-                id="email"
-                type="email"
-                placeholder="e.g., admin@pss.org"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full border-border focus:border-primary"
                 disabled={isLoading}
               />
@@ -146,10 +147,10 @@ export default function ChairmanLoginPage() {
             <p className="font-semibold text-blue-900">Try these credentials:</p>
             <div className="space-y-1 text-blue-800">
               <p>
-                Email: <span className="font-mono font-bold">admin@pss.org</span>
+                Username: <span className="font-mono font-bold">srinivas</span>
               </p>
               <p>
-                Password: <span className="font-mono font-bold">Admin@123</span>
+                Password: <span className="font-mono font-bold">srinivas123</span>
               </p>
             </div>
           </div>

@@ -4,8 +4,7 @@ import { useEffect, useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { LogOut } from "lucide-react"
-import { SidebarNav } from "@/components/sidebar-nav"
+import { LogOut, Home, User, Calendar, GraduationCap, ChevronDown } from "lucide-react"
 
 interface UserData {
   studentName: string
@@ -40,6 +39,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("details")
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   useEffect(() => {
     const userStr = localStorage.getItem("pssUser")
@@ -71,30 +71,122 @@ export default function DashboardPage() {
     return null
   }
 
+  const navItems = [
+    { id: "home", label: "Home", icon: Home, href: "/" },
+    { id: "details", label: "Student Details", icon: User },
+    { id: "attendance", label: "Student Attendance", icon: Calendar },
+    { id: "academics", label: "Student Academics", icon: GraduationCap },
+  ]
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border sticky top-0 z-40">
-        <nav className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      {/* Top Header with Logo */}
+      <header className="bg-white shadow-sm border-b border-border">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Image src="/images/pss-logo.png" alt="PSS Logo" width={40} height={40} className="w-10 h-10" />
             <div>
-              <span className="font-playfair font-bold text-lg text-primary block">PSS</span>
-              <span className="text-xs text-muted-foreground">Dashboard</span>
+              <span className="font-playfair font-bold text-lg text-primary block">PSS Trust</span>
+              <span className="text-xs text-muted-foreground">Student Portal</span>
             </div>
           </Link>
-          <Button onClick={handleLogout} variant="outline" className="gap-2 bg-transparent">
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
-        </nav>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block text-right">
+              <p className="text-sm font-semibold text-foreground">{user.studentName}</p>
+              <p className="text-xs text-muted-foreground">ID: {user.trustId}</p>
+            </div>
+            <Button onClick={handleLogout} variant="outline" className="gap-2 bg-transparent">
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
+        </div>
       </header>
 
-      <div className="flex">
-        <SidebarNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <nav className="bg-[#2d3748] text-white sticky top-0 z-40 shadow-md">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-1 py-1">
+            {navItems.map((item) =>
+              item.href ? (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-white/10 transition-colors rounded"
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </Link>
+              ) : (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors rounded ${
+                    activeTab === item.id ? "bg-primary text-white" : "hover:bg-white/10"
+                  }`}
+                >
+                  <item.icon className="w-4 h-4" />
+                  {item.label}
+                </button>
+              ),
+            )}
+          </div>
 
+          {/* Mobile Navigation */}
+          <div className="md:hidden py-2">
+            <button
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium bg-white/10 rounded"
+            >
+              <span className="flex items-center gap-2">
+                {navItems.find((item) => item.id === activeTab)?.icon &&
+                  (() => {
+                    const Icon = navItems.find((item) => item.id === activeTab)?.icon || User
+                    return <Icon className="w-4 h-4" />
+                  })()}
+                {navItems.find((item) => item.id === activeTab)?.label || "Menu"}
+              </span>
+              <ChevronDown className={`w-4 h-4 transition-transform ${mobileNavOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {mobileNavOpen && (
+              <div className="mt-2 space-y-1 bg-[#1a202c] rounded-lg p-2">
+                {navItems.map((item) =>
+                  item.href ? (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium hover:bg-white/10 transition-colors rounded"
+                      onClick={() => setMobileNavOpen(false)}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id)
+                        setMobileNavOpen(false)
+                      }}
+                      className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium transition-colors rounded ${
+                        activeTab === item.id ? "bg-primary text-white" : "hover:bg-white/10"
+                      }`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      {item.label}
+                    </button>
+                  ),
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <div className="flex">
         {/* Content Area */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-12 md:py-8">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8">
           {/* Details Tab */}
           {activeTab === "details" && (
             <div className="max-w-5xl mx-auto">
@@ -303,52 +395,181 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Scholarships Tab */}
-          {activeTab === "scholarships" && (
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="font-playfair text-2xl font-bold text-foreground mb-6">Available Scholarships</h2>
-                <p className="text-muted-foreground">Scholarship opportunities will be displayed here.</p>
+          {activeTab === "attendance" && (
+            <div className="max-w-5xl mx-auto">
+              <div className="bg-white rounded-lg shadow-lg p-8 border-l-4 border-primary">
+                <h2 className="font-playfair text-2xl font-bold text-foreground mb-6">Student Attendance</h2>
+
+                {/* Attendance Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <p className="text-3xl font-bold text-green-600">85%</p>
+                    <p className="text-sm text-green-700">Overall Attendance</p>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                    <p className="text-3xl font-bold text-blue-600">45</p>
+                    <p className="text-sm text-blue-700">Classes Attended</p>
+                  </div>
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                    <p className="text-3xl font-bold text-orange-600">8</p>
+                    <p className="text-sm text-orange-700">Classes Missed</p>
+                  </div>
+                </div>
+
+                {/* Attendance Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th className="text-left p-3 font-semibold text-sm">Date</th>
+                        <th className="text-left p-3 font-semibold text-sm">Subject</th>
+                        <th className="text-left p-3 font-semibold text-sm">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="p-3 text-sm">29 Nov 2025</td>
+                        <td className="p-3 text-sm">Mathematics</td>
+                        <td className="p-3">
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
+                            Present
+                          </span>
+                        </td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-3 text-sm">28 Nov 2025</td>
+                        <td className="p-3 text-sm">English</td>
+                        <td className="p-3">
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
+                            Present
+                          </span>
+                        </td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-3 text-sm">27 Nov 2025</td>
+                        <td className="p-3 text-sm">Science</td>
+                        <td className="p-3">
+                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium">Absent</span>
+                        </td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-3 text-sm">26 Nov 2025</td>
+                        <td className="p-3 text-sm">Computer Science</td>
+                        <td className="p-3">
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">
+                            Present
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <p className="text-sm text-muted-foreground mt-6">
+                  * Attendance records are updated by the trust administrators.
+                </p>
               </div>
             </div>
           )}
 
-          {/* Mentorship Tab */}
-          {activeTab === "mentorship" && (
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="font-playfair text-2xl font-bold text-foreground mb-6">Mentorship Program</h2>
-                <p className="text-muted-foreground">Connect with experienced mentors to guide your journey.</p>
-              </div>
-            </div>
-          )}
+          {activeTab === "academics" && (
+            <div className="max-w-5xl mx-auto">
+              <div className="bg-white rounded-lg shadow-lg p-8 border-l-4 border-primary">
+                <h2 className="font-playfair text-2xl font-bold text-foreground mb-6">Student Academics</h2>
 
-          {/* Resources Tab */}
-          {activeTab === "resources" && (
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="font-playfair text-2xl font-bold text-foreground mb-6">Learning Resources</h2>
-                <p className="text-muted-foreground">Access study materials, guides, and educational content.</p>
-              </div>
-            </div>
-          )}
+                {/* Academic Performance Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+                    <p className="text-3xl font-bold text-primary">A+</p>
+                    <p className="text-sm text-muted-foreground">Current Grade</p>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                    <p className="text-3xl font-bold text-blue-600">92%</p>
+                    <p className="text-sm text-blue-700">Average Score</p>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <p className="text-3xl font-bold text-green-600">3</p>
+                    <p className="text-sm text-green-700">Rank in Class</p>
+                  </div>
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                    <p className="text-3xl font-bold text-purple-600">6</p>
+                    <p className="text-sm text-purple-700">Subjects Enrolled</p>
+                  </div>
+                </div>
 
-          {/* Career Tab */}
-          {activeTab === "career" && (
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="font-playfair text-2xl font-bold text-foreground mb-6">Career Support</h2>
-                <p className="text-muted-foreground">Get help with resume building, interviews, and placements.</p>
-              </div>
-            </div>
-          )}
+                {/* Subjects Performance */}
+                <h3 className="font-semibold text-lg mb-4">Subject-wise Performance</h3>
+                <div className="space-y-4 mb-8">
+                  {[
+                    { subject: "Mathematics", score: 95, grade: "A+" },
+                    { subject: "English", score: 88, grade: "A" },
+                    { subject: "Science", score: 92, grade: "A+" },
+                    { subject: "Computer Science", score: 98, grade: "A+" },
+                    { subject: "Social Studies", score: 85, grade: "A" },
+                    { subject: "Telugu", score: 90, grade: "A+" },
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="w-32 sm:w-40 text-sm font-medium">{item.subject}</div>
+                      <div className="flex-1 bg-muted rounded-full h-4 overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all"
+                          style={{ width: `${item.score}%` }}
+                        />
+                      </div>
+                      <div className="w-12 text-sm font-semibold text-right">{item.score}%</div>
+                      <div className="w-10 text-center">
+                        <span className="bg-primary/10 text-primary px-2 py-1 rounded text-xs font-medium">
+                          {item.grade}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-          {/* Support Tab */}
-          {activeTab === "support" && (
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-lg shadow-lg p-8">
-                <h2 className="font-playfair text-2xl font-bold text-foreground mb-6">Support & Help</h2>
-                <p className="text-muted-foreground">Contact our support team for assistance.</p>
+                {/* Exam Results Table */}
+                <h3 className="font-semibold text-lg mb-4">Recent Exam Results</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-muted">
+                        <th className="text-left p-3 font-semibold text-sm">Exam Name</th>
+                        <th className="text-left p-3 font-semibold text-sm">Date</th>
+                        <th className="text-left p-3 font-semibold text-sm">Score</th>
+                        <th className="text-left p-3 font-semibold text-sm">Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="p-3 text-sm">Mid-Term Examination</td>
+                        <td className="p-3 text-sm">Oct 2025</td>
+                        <td className="p-3 text-sm">456/500</td>
+                        <td className="p-3">
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">A+</span>
+                        </td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-3 text-sm">Unit Test 2</td>
+                        <td className="p-3 text-sm">Sep 2025</td>
+                        <td className="p-3 text-sm">92/100</td>
+                        <td className="p-3">
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">A+</span>
+                        </td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="p-3 text-sm">Unit Test 1</td>
+                        <td className="p-3 text-sm">Aug 2025</td>
+                        <td className="p-3 text-sm">88/100</td>
+                        <td className="p-3">
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">A</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <p className="text-sm text-muted-foreground mt-6">
+                  * Academic records are updated after each examination by the trust administrators.
+                </p>
               </div>
             </div>
           )}

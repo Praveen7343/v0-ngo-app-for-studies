@@ -54,13 +54,24 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate form data
-    if (!formData.fullName) {
-      alert("Please enter your full name")
+    if (step === 1) {
+      if (!formData.fullName) {
+        alert("Please enter your full name")
+        return
+      }
+      setStep(2)
       return
     }
 
+    if (step === 2) {
+      // Validate step 2 if needed, currently proceeding to step 3
+      setStep(3)
+      return
+    }
+
+    // Step 3: Final submission
     try {
+      setIsLoading(true) // Added loading state
       const generatedTrustId = Math.random().toString().slice(2, 10).padEnd(8, "0")
       setTrustId(generatedTrustId)
 
@@ -155,10 +166,12 @@ export default function SignUpPage() {
       })
       localStorage.setItem("pssRegistrations", JSON.stringify(registrations))
 
-      setStep(4)
+      setShowSuccess(true) // Use showSuccess instead of step 4 for clarity
     } catch (error) {
       console.error("[v0] Registration error:", error)
       alert("Registration failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -561,16 +574,6 @@ export default function SignUpPage() {
               </div>
             )}
 
-            {step === 4 && (
-              <div className="space-y-5">
-                <h1 className="font-playfair text-2xl font-bold text-foreground mb-2">Registration Complete!</h1>
-                <p className="text-muted-foreground mb-6">Thank you for registering with PSS Trust.</p>
-                <Link href="/login">
-                  <Button className="w-full">Go to Login</Button>
-                </Link>
-              </div>
-            )}
-
             <div className="flex gap-4 pt-4">
               {step > 1 && (
                 <Button
@@ -586,7 +589,7 @@ export default function SignUpPage() {
                 </Button>
               )}
               <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? "Processing..." : step === 4 ? "Login" : "Next"}
+                {isLoading ? "Processing..." : step === 3 ? "Submit Registration" : "Next"}
               </Button>
             </div>
           </form>

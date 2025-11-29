@@ -15,13 +15,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
-    // Simulate login validation
-    setTimeout(() => {
+    try {
       if (!studentName.trim() || !trustId.trim()) {
         setError("Please fill in all fields")
         setIsLoading(false)
@@ -34,27 +33,31 @@ export default function LoginPage() {
         return
       }
 
-      const registrations = JSON.parse(localStorage.getItem("pssRegistrations") || "[]")
-      const foundStudent = registrations.find(
-        (reg: any) => reg.fullName.toLowerCase() === studentName.toLowerCase() && reg.trustId === trustId,
-      )
+      // Call the login API to verify credentials from Supabase
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentName: studentName.trim(), trustId }),
+      })
 
-      if (!foundStudent) {
+      const result = await response.json()
+
+      if (!result.success) {
         setError("Invalid credentials. Please check your name and Trust ID.")
         setIsLoading(false)
         return
       }
 
-      const studentData = {
-        ...foundStudent,
-        loginTime: new Date(),
-      }
-
-      localStorage.setItem("pssUser", JSON.stringify(studentData))
+      // Store student data in localStorage for session
+      localStorage.setItem("pssUser", JSON.stringify(result.data))
 
       // Redirect to dashboard
       window.location.href = "/dashboard"
-    }, 1000)
+    } catch (err) {
+      console.error("[v0] Login error:", err)
+      setError("An error occurred. Please try again.")
+      setIsLoading(false)
+    }
   }
 
   return (

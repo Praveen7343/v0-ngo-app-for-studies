@@ -32,7 +32,7 @@ export default function OurImpact() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-gray-50">
+    <section id="impact" className="py-16 md:py-24 bg-gray-50 scroll-mt-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12">
