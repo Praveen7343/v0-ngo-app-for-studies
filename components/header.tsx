@@ -3,14 +3,25 @@
 import type React from "react"
 
 import { Button } from "@/components/ui/button"
-import { Menu, X, Phone, ChevronDown } from "lucide-react"
-import { useState } from "react"
+import { Menu, X, Phone, ChevronDown, Home, UserPlus, GraduationCap, LogIn, Info, TrendingUp, Mail } from "lucide-react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [studentDropdownOpen, setStudentDropdownOpen] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = "unset"
+    }
+    return () => {
+      document.body.style.overflow = "unset"
+    }
+  }, [isOpen])
 
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault()
@@ -19,6 +30,11 @@ export default function Header() {
       element.scrollIntoView({ behavior: "smooth", block: "start" })
     }
     setIsOpen(false)
+  }
+
+  const closeSidebar = () => {
+    setIsOpen(false)
+    setStudentDropdownOpen(false)
   }
 
   return (
@@ -130,6 +146,12 @@ export default function Header() {
                     >
                       Student Academics
                     </Link>
+                    <Link
+                      href="/student/fee-application"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      Fee Application
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -149,92 +171,154 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Mobile: Show trust name and menu button */}
             <div className="md:hidden flex items-center justify-between w-full">
               <span className="text-sm font-medium">PSS Trust</span>
-              <button onClick={() => setIsOpen(!isOpen)} className="p-2">
-                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              <button onClick={() => setIsOpen(!isOpen)} className="p-2" aria-label="Open menu">
+                <Menu className="w-6 h-6" />
               </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown */}
-      {isOpen && (
-        <div className="md:hidden bg-primary border-t border-white/20">
-          <div className="px-4 py-4 space-y-2">
-            <Link href="/" className="block px-3 py-2 text-primary-foreground hover:bg-white/10 rounded">
-              Home
+      {isOpen && <div className="md:hidden fixed inset-0 bg-black/50 z-50" onClick={closeSidebar} />}
+
+      <div
+        className={`md:hidden fixed top-0 left-0 h-full w-[75%] max-w-[300px] z-50 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Sidebar Header - Blue */}
+        <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/images/pss-logo.png"
+              alt="PSS Trust Logo"
+              width={40}
+              height={40}
+              className="w-10 h-10 rounded-full border-2 border-white"
+            />
+            <div>
+              <h2 className="font-bold text-sm">PSS Trust</h2>
+              <p className="text-xs text-primary-foreground/80">Menu</p>
+            </div>
+          </div>
+          <button onClick={closeSidebar} className="p-1" aria-label="Close menu">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Sidebar Menu Items - White background */}
+        <div className="bg-white h-full overflow-y-auto">
+          <nav className="py-2">
+            {/* Home */}
+            <Link
+              href="/"
+              className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary/5 transition-colors"
+              onClick={closeSidebar}
+            >
+              <Home className="w-5 h-5" />
+              <span className="font-medium">Home</span>
             </Link>
-            <a
-              href="#about"
-              onClick={(e) => handleScroll(e, "about")}
-              className="block px-3 py-2 text-primary-foreground hover:bg-white/10 rounded cursor-pointer"
+
+            {/* Sign Up */}
+            <Link
+              href="/signup"
+              className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary/5 transition-colors"
+              onClick={closeSidebar}
             >
-              About Us
-            </a>
-            <a
-              href="#impact"
-              onClick={(e) => handleScroll(e, "impact")}
-              className="block px-3 py-2 text-primary-foreground hover:bg-white/10 rounded cursor-pointer"
-            >
-              Our Impact
-            </a>
-            <a
-              href="#contact"
-              onClick={(e) => handleScroll(e, "contact")}
-              className="block px-3 py-2 text-primary-foreground hover:bg-white/10 rounded cursor-pointer"
-            >
-              Contact Us
-            </a>
+              <UserPlus className="w-5 h-5" />
+              <span className="font-medium">Sign Up</span>
+            </Link>
+
+            {/* Student - with submenu */}
             <div>
               <button
                 onClick={() => setStudentDropdownOpen(!studentDropdownOpen)}
-                className="flex items-center justify-between w-full px-3 py-2 text-primary-foreground hover:bg-white/10 rounded"
+                className="flex items-center justify-between w-full px-4 py-3 text-primary hover:bg-primary/5 transition-colors"
               >
-                Student
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="w-5 h-5" />
+                  <span className="font-medium">Student</span>
+                </div>
                 <ChevronDown className={`w-4 h-4 transition-transform ${studentDropdownOpen ? "rotate-180" : ""}`} />
               </button>
               {studentDropdownOpen && (
-                <div className="ml-4 mt-1 space-y-1 border-l-2 border-white/30 pl-3">
+                <div className="bg-gray-50 border-l-4 border-primary ml-4">
                   <Link
                     href="/student/details"
-                    className="block px-3 py-2 text-primary-foreground/90 hover:bg-white/10 rounded text-sm"
-                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2.5 text-sm text-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                    onClick={closeSidebar}
                   >
                     Student Details
                   </Link>
                   <Link
                     href="/student/attendance"
-                    className="block px-3 py-2 text-primary-foreground/90 hover:bg-white/10 rounded text-sm"
-                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2.5 text-sm text-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                    onClick={closeSidebar}
                   >
                     Student Attendance
                   </Link>
                   <Link
                     href="/student/academics"
-                    className="block px-3 py-2 text-primary-foreground/90 hover:bg-white/10 rounded text-sm"
-                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2.5 text-sm text-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                    onClick={closeSidebar}
                   >
                     Student Academics
+                  </Link>
+                  <Link
+                    href="/student/fee-application"
+                    className="block px-4 py-2.5 text-sm text-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                    onClick={closeSidebar}
+                  >
+                    Fee Application
                   </Link>
                 </div>
               )}
             </div>
-            <div className="pt-2 border-t border-white/20 space-y-2">
-              <Link href="/chairman-login" className="block">
-                <Button variant="secondary" className="w-full bg-white text-primary hover:bg-white/90">
-                  Chairman Login
-                </Button>
-              </Link>
-              <Link href="/signup" className="block">
-                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90">Sign Up</Button>
-              </Link>
-            </div>
-          </div>
+
+            {/* Chairman Login */}
+            <Link
+              href="/chairman-login"
+              className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary/5 transition-colors"
+              onClick={closeSidebar}
+            >
+              <LogIn className="w-5 h-5" />
+              <span className="font-medium">Chairman Login</span>
+            </Link>
+
+            {/* About Us */}
+            <a
+              href="#about"
+              onClick={(e) => handleScroll(e, "about")}
+              className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary/5 transition-colors cursor-pointer"
+            >
+              <Info className="w-5 h-5" />
+              <span className="font-medium">About Us</span>
+            </a>
+
+            {/* Our Impact */}
+            <a
+              href="#impact"
+              onClick={(e) => handleScroll(e, "impact")}
+              className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary/5 transition-colors cursor-pointer"
+            >
+              <TrendingUp className="w-5 h-5" />
+              <span className="font-medium">Our Impact</span>
+            </a>
+
+            {/* Contact Us */}
+            <a
+              href="#contact"
+              onClick={(e) => handleScroll(e, "contact")}
+              className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary/5 transition-colors cursor-pointer"
+            >
+              <Mail className="w-5 h-5" />
+              <span className="font-medium">Contact Us</span>
+            </a>
+          </nav>
         </div>
-      )}
+      </div>
     </header>
   )
 }
