@@ -56,24 +56,32 @@ export default function SignUpPage() {
 
     if (step === 1) {
       if (!formData.fullName) {
-        alert("Please enter your full name")
+        setError("Please enter your full name")
         return
       }
+      if (!formData.dateOfBirth) {
+        setError("Please enter your date of birth (required for Trust ID)")
+        return
+      }
+      setError("")
       setStep(2)
       return
     }
 
     if (step === 2) {
-      // Validate step 2 if needed, currently proceeding to step 3
+      if (!formData.diplomaYearOfStudying) {
+        setError("Please enter your diploma year of studying (required for Trust ID)")
+        return
+      }
+      setError("")
       setStep(3)
       return
     }
 
     // Step 3: Final submission
     try {
-      setIsLoading(true) // Added loading state
-      const generatedTrustId = Math.random().toString().slice(2, 10).padEnd(8, "0")
-      setTrustId(generatedTrustId)
+      setIsLoading(true)
+      setError("")
 
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -82,7 +90,6 @@ export default function SignUpPage() {
         },
         body: JSON.stringify({
           fullName: formData.fullName,
-          trustId: generatedTrustId,
           fatherName: formData.fatherName,
           motherName: formData.motherName,
           dateOfBirth: formData.dateOfBirth,
@@ -115,61 +122,17 @@ export default function SignUpPage() {
         }),
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error("Registration failed")
+        throw new Error(result.error || "Registration failed")
       }
 
-      // Also save to localStorage for backward compatibility
-      const registrations = JSON.parse(localStorage.getItem("pssRegistrations") || "[]")
-      registrations.push({
-        fullName: formData.fullName,
-        trustId: generatedTrustId,
-        personal: {
-          fatherName: formData.fatherName,
-          motherName: formData.motherName,
-          dateOfBirth: formData.dateOfBirth,
-          gender: formData.gender,
-          mobileNumber: formData.mobileNumber,
-          emailId: formData.emailId,
-          address: formData.address,
-        },
-        ssc:
-          formData.schoolName || formData.board
-            ? {
-                schoolName: formData.schoolName,
-                board: formData.board,
-                yearOfPassing: formData.sscYearOfPassing,
-                percentage: formData.sscPercentage,
-              }
-            : null,
-        diploma:
-          formData.diplomaCollegeName || formData.diplomaBranch
-            ? {
-                collegeName: formData.diplomaCollegeName,
-                branch: formData.diplomaBranch,
-                yearOfStudying: formData.diplomaYearOfStudying,
-                pin: formData.diplomaPin,
-                percentage: formData.diplomaPercentage,
-              }
-            : null,
-        btech:
-          formData.btechCollegeName || formData.btechBranch
-            ? {
-                collegeName: formData.btechCollegeName,
-                branch: formData.btechBranch,
-                yearOfStudying: formData.btechYearOfStudying,
-                percentage: formData.btechCgpaPercentage,
-                pin: formData.btechPin,
-              }
-            : null,
-        createdAt: new Date().toISOString(),
-      })
-      localStorage.setItem("pssRegistrations", JSON.stringify(registrations))
-
-      setShowSuccess(true) // Use showSuccess instead of step 4 for clarity
-    } catch (error) {
+      setTrustId(result.trustId)
+      setShowSuccess(true)
+    } catch (error: any) {
       console.error("[v0] Registration error:", error)
-      alert("Registration failed. Please try again.")
+      setError(error.message || "Registration failed. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -208,14 +171,23 @@ export default function SignUpPage() {
               <p className="text-xs text-muted-foreground">Please save this ID for future logins</p>
             </div>
 
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 text-left">
+              <p className="text-sm font-medium text-foreground mb-2">Trust ID Format:</p>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• First 2 digits: Year of joining ({trustId.slice(0, 2)})</li>
+                <li>• Next 2 digits: Registration number ({trustId.slice(2, 4)})</li>
+                <li>• Last 2 digits: Day of birth ({trustId.slice(4, 6)})</li>
+              </ul>
+            </div>
+
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-yellow-800">
-                <strong>Next Step:</strong> Use your full name and Trust ID to login
+                <strong>Next Step:</strong> Use your full name and Trust ID to access student services
               </p>
             </div>
 
-            <Link href="/login">
-              <Button className="w-full">Go to Login</Button>
+            <Link href="/">
+              <Button className="w-full">Go to Home</Button>
             </Link>
           </div>
         </main>
@@ -288,7 +260,7 @@ export default function SignUpPage() {
           <p className="text-center text-sm text-muted-foreground mb-6">
             {step === 1 && "Personal Information"}
             {step === 2 && "Academic Details (SSC & Diploma)"}
-            {step === 3 && "B.Tech Information"}
+            {step === 3 && "B.Tech Information (Optional)"}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -300,13 +272,16 @@ export default function SignUpPage() {
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">Full Name</label>
+                    <label className="block text-sm font-medium text-foreground">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
                     <Input
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
                       placeholder="Enter your full name"
                       className="w-full border-border"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -333,14 +308,18 @@ export default function SignUpPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">Date of Birth</label>
+                    <label className="block text-sm font-medium text-foreground">
+                      Date of Birth <span className="text-red-500">*</span>
+                    </label>
                     <Input
                       name="dateOfBirth"
                       type="date"
                       value={formData.dateOfBirth}
                       onChange={handleInputChange}
                       className="w-full border-border"
+                      required
                     />
+                    <p className="text-xs text-muted-foreground">Required for Trust ID generation</p>
                   </div>
                 </div>
 
@@ -475,14 +454,18 @@ export default function SignUpPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">Year of Studying</label>
+                    <label className="block text-sm font-medium text-foreground">
+                      Year of Joining Diploma <span className="text-red-500">*</span>
+                    </label>
                     <Input
                       name="diplomaYearOfStudying"
                       value={formData.diplomaYearOfStudying}
                       onChange={handleInputChange}
-                      placeholder="Enter year"
+                      placeholder="e.g., 2024"
                       className="w-full border-border"
+                      required
                     />
+                    <p className="text-xs text-muted-foreground">Required for Trust ID generation</p>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-foreground">PIN Number</label>
@@ -490,19 +473,19 @@ export default function SignUpPage() {
                       name="diplomaPin"
                       value={formData.diplomaPin}
                       onChange={handleInputChange}
-                      placeholder="Enter PIN"
+                      placeholder="Enter PIN number"
                       className="w-full border-border"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">Percentage (Till Now)</label>
+                  <label className="block text-sm font-medium text-foreground">Percentage/CGPA</label>
                   <Input
                     name="diplomaPercentage"
                     value={formData.diplomaPercentage}
                     onChange={handleInputChange}
-                    placeholder="Enter percentage"
+                    placeholder="Enter percentage (if available)"
                     className="w-full border-border"
                   />
                 </div>
@@ -511,18 +494,19 @@ export default function SignUpPage() {
 
             {step === 3 && (
               <div className="space-y-5">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800">B.Tech information is optional. Skip if not applicable.</p>
+                </div>
+
                 <h3 className="font-semibold text-lg text-foreground">B.Tech (Optional)</h3>
-                <p className="text-sm text-muted-foreground bg-blue-50 border border-blue-200 rounded p-3 mb-4">
-                  If you haven't started B.Tech yet, you can leave this section empty and continue.
-                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">College/University</label>
+                    <label className="block text-sm font-medium text-foreground">College Name</label>
                     <Input
                       name="btechCollegeName"
                       value={formData.btechCollegeName}
                       onChange={handleInputChange}
-                      placeholder="Enter college name (optional)"
+                      placeholder="Enter college name"
                       className="w-full border-border"
                     />
                   </div>
@@ -532,7 +516,7 @@ export default function SignUpPage() {
                       name="btechBranch"
                       value={formData.btechBranch}
                       onChange={handleInputChange}
-                      placeholder="Enter branch (optional)"
+                      placeholder="Enter branch"
                       className="w-full border-border"
                     />
                   </div>
@@ -545,7 +529,7 @@ export default function SignUpPage() {
                       name="btechYearOfStudying"
                       value={formData.btechYearOfStudying}
                       onChange={handleInputChange}
-                      placeholder="Enter year (optional)"
+                      placeholder="Enter year"
                       className="w-full border-border"
                     />
                   </div>
@@ -555,19 +539,19 @@ export default function SignUpPage() {
                       name="btechPin"
                       value={formData.btechPin}
                       onChange={handleInputChange}
-                      placeholder="Enter PIN (optional)"
+                      placeholder="Enter PIN number"
                       className="w-full border-border"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">CGPA/Percentage (Till Now)</label>
+                  <label className="block text-sm font-medium text-foreground">CGPA/Percentage</label>
                   <Input
                     name="btechCgpaPercentage"
                     value={formData.btechCgpaPercentage}
                     onChange={handleInputChange}
-                    placeholder="Enter CGPA or percentage (optional)"
+                    placeholder="Enter CGPA or percentage"
                     className="w-full border-border"
                   />
                 </div>
@@ -576,20 +560,12 @@ export default function SignUpPage() {
 
             <div className="flex gap-4 pt-4">
               {step > 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setStep(step - 1)
-                    setError("")
-                  }}
-                  className="flex-1"
-                >
-                  Back
+                <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
+                  Previous
                 </Button>
               )}
-              <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? "Processing..." : step === 3 ? "Submit Registration" : "Next"}
+              <Button type="submit" className="flex-1" disabled={isLoading}>
+                {isLoading ? "Submitting..." : step === 3 ? "Submit Registration" : "Next"}
               </Button>
             </div>
           </form>

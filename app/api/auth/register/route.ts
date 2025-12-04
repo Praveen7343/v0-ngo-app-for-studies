@@ -1,12 +1,47 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
+async function generateTrustId(supabase: any, yearOfJoining: string, dateOfBirth: string): Promise<string> {
+  // Get last 2 digits of joining year (e.g., 2024 -> 24)
+  const yearPart = yearOfJoining.slice(-2)
+
+  // Get the day from date of birth (e.g., 2007-04-13 -> 13)
+  const dobDate = new Date(dateOfBirth)
+  const dayPart = dobDate.getDate().toString().padStart(2, "0")
+
+  // Get the count of students who joined in the same year to determine registration number
+  const { count, error } = await supabase
+    .from("students")
+    .select("*", { count: "exact", head: true })
+    .ilike("trust_id", `${yearPart}%`)
+
+  if (error) {
+    console.error("[v0] Error counting students:", error)
+  }
+
+  // Registration number is count + 1, padded to 2 digits
+  const registrationNumber = ((count || 0) + 1).toString().padStart(2, "0")
+
+  // Final Trust ID format: YY + RR + DD (e.g., 242113)
+  const trustId = `${yearPart}${registrationNumber}${dayPart}`
+
+  return trustId
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const data = await request.json()
 
-    const trustId = data.trustId
+    // Use diploma year of studying as joining year, fallback to current year
+    const joiningYear = data.diploma?.yearOfStudying || new Date().getFullYear().toString()
+    const dateOfBirth = data.dateOfBirth
+
+    if (!dateOfBirth) {
+      return NextResponse.json({ success: false, error: "Date of birth is required" }, { status: 400 })
+    }
+
+    const trustId = await generateTrustId(supabase, joiningYear, dateOfBirth)
 
     const { data: student, error: studentError } = await supabase
       .from("students")

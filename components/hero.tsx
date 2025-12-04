@@ -34,14 +34,6 @@ export default function Hero() {
               Learn More
             </Button>
           </div>
-
-          <div className="pt-12">
-            <img
-              src="/images/trustees-team.jpg"
-              alt="PSS Trust Leadership Team"
-              className="rounded-xl shadow-2xl border border-border w-full max-w-4xl"
-            />
-          </div>
         </div>
       </div>
     </section>
