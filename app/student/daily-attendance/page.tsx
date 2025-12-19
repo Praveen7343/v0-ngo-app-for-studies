@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Home, Camera, CheckCircle2, Clock, Delete, AlertCircle } from "lucide-react"
+import { Home, Camera, CheckCircle2, Delete, AlertCircle } from "lucide-react"
 
 type Step = "dialpad" | "face-capture" | "success"
 type AttendanceType = "first-checkin" | "second-checkin" | "complete"
@@ -26,12 +26,25 @@ export default function DailyAttendancePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Dial pad buttons
-  const dialButtons = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "⌫"]
+  const dialButtons = [
+    { num: "1", letters: "" },
+    { num: "2", letters: "ABC" },
+    { num: "3", letters: "DEF" },
+    { num: "4", letters: "GHI" },
+    { num: "5", letters: "JKL" },
+    { num: "6", letters: "MNO" },
+    { num: "7", letters: "PQRS" },
+    { num: "8", letters: "TUV" },
+    { num: "9", letters: "WXYZ" },
+    { num: "*", letters: "" },
+    { num: "0", letters: "+" },
+    { num: "#", letters: "" },
+  ]
 
   const handleDialPress = (value: string) => {
     if (value === "⌫") {
       setTrustId((prev) => prev.slice(0, -1))
-    } else if (value && trustId.length < 15) {
+    } else if (value !== "*" && value !== "#" && trustId.length < 15) {
       setTrustId((prev) => prev + value)
     }
   }
@@ -151,15 +164,14 @@ export default function DailyAttendancePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-white">
+      <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Image src="/images/pss-logo.png" alt="PSS Logo" width={40} height={40} className="w-10 h-10" />
             <div>
-              <span className="font-bold text-lg text-primary block">PSS Trust</span>
-              <span className="text-xs text-muted-foreground">Daily Attendance</span>
+              <span className="font-bold text-lg text-gray-900 block">PSS Trust</span>
+              <span className="text-xs text-gray-500">Daily Attendance</span>
             </div>
           </Link>
           <Link href="/">
@@ -172,63 +184,67 @@ export default function DailyAttendancePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="max-w-md mx-auto px-4 py-6">
         {step === "dialpad" && (
-          <Card className="shadow-xl">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-primary" />
-              </div>
-              <CardTitle className="text-2xl">Mark Your Attendance</CardTitle>
-              <CardDescription>Enter your Trust ID to continue</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Trust ID Display */}
-              <div className="bg-gray-100 rounded-lg p-6 text-center">
-                <div className="text-3xl font-mono font-bold text-primary min-h-[48px] flex items-center justify-center">
-                  {trustId || "Enter Trust ID"}
+          <div className="space-y-6">
+            <div className="text-center pt-8 pb-4">
+              <div className="border-4 border-gray-800 rounded-lg px-6 py-4 mx-4 bg-gray-50">
+                <div className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-wider min-h-[60px] flex items-center justify-center">
+                  {trustId || <span className="opacity-0">0</span>}
                 </div>
               </div>
+            </div>
 
-              {/* Dialpad */}
-              <div className="grid grid-cols-3 gap-3">
-                {dialButtons.map((button, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleDialPress(button)}
-                    disabled={!button || isLoading}
-                    className={`h-16 rounded-lg text-xl font-semibold transition-all ${
-                      button === "⌫"
-                        ? "bg-red-100 text-red-600 hover:bg-red-200 active:scale-95"
-                        : button
-                          ? "bg-white border-2 border-primary/20 text-primary hover:bg-primary/5 hover:border-primary active:scale-95"
-                          : "invisible"
-                    } disabled:opacity-50`}
-                  >
-                    {button === "⌫" ? <Delete className="w-6 h-6 mx-auto" /> : button}
-                  </button>
-                ))}
-              </div>
+            <div className="grid grid-cols-3 gap-x-6 gap-y-4 px-4">
+              {dialButtons.map((button, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDialPress(button.num)}
+                  disabled={isLoading}
+                  className="flex flex-col items-center justify-center h-20 rounded-full transition-all bg-blue-100 hover:bg-blue-200 active:bg-blue-300 disabled:opacity-50"
+                >
+                  <span className="text-3xl font-semibold text-blue-900">{button.num}</span>
+                  {button.letters && (
+                    <span className="text-[10px] text-blue-700 tracking-[0.2em] mt-0.5">{button.letters}</span>
+                  )}
+                </button>
+              ))}
+            </div>
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              )}
+            <div className="flex items-center justify-center gap-8 pt-4 px-4">
+              {/* Spacer */}
+              <div className="w-16" />
 
-              <Button onClick={handleVerifyTrustId} className="w-full h-12 text-base" disabled={!trustId || isLoading}>
+              <button
+                onClick={handleVerifyTrustId}
+                disabled={!trustId || isLoading}
+                className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center transition-all shadow-lg"
+              >
                 {isLoading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Verifying...
-                  </>
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  "Continue"
+                  <CheckCircle2 className="w-8 h-8 text-white" />
                 )}
-              </Button>
-            </CardContent>
-          </Card>
+              </button>
+
+              <button
+                onClick={() => handleDialPress("⌫")}
+                disabled={!trustId || isLoading}
+                className="w-16 h-16 flex items-center justify-center text-gray-500 hover:text-gray-900 disabled:opacity-30 transition-colors"
+              >
+                <Delete className="w-7 h-7" />
+              </button>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-start gap-2 mx-4">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <p className="text-center text-gray-500 text-sm">Enter your Trust ID and tap the green button to verify</p>
+          </div>
         )}
 
         {step === "face-capture" && (
@@ -243,18 +259,18 @@ export default function DailyAttendancePage() {
                     : "You have already completed both check-ins today"}
               </CardDescription>
               {studentData && (
-                <div className="mt-2 text-sm text-muted-foreground">
-                  Welcome, <span className="font-semibold text-primary">{studentData.student_name}</span>
+                <div className="mt-2 text-sm text-gray-600">
+                  Welcome, <span className="font-semibold text-green-600">{studentData.student_name}</span>
                 </div>
               )}
             </CardHeader>
             <CardContent className="space-y-6">
               {attendanceType === "complete" ? (
                 <div className="text-center py-8">
-                  <CheckCircle2 className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                  <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
                   <p className="text-lg font-semibold text-green-600 mb-2">Attendance Already Marked</p>
-                  <p className="text-sm text-muted-foreground">You have completed both check-ins for today</p>
-                  <Button onClick={handleReset} className="mt-6">
+                  <p className="text-sm text-gray-500">You have completed both check-ins for today</p>
+                  <Button onClick={handleReset} className="mt-6 bg-green-500 hover:bg-green-600">
                     Done
                   </Button>
                 </div>
@@ -262,11 +278,11 @@ export default function DailyAttendancePage() {
                 <>
                   {/* Camera Preview with Circular Frame */}
                   <div className="relative aspect-square max-w-md mx-auto">
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
                       {!isCameraActive ? (
                         <div className="text-center">
                           <Camera className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                          <Button onClick={startCamera} size="lg">
+                          <Button onClick={startCamera} size="lg" className="bg-blue-500 hover:bg-blue-600">
                             <Camera className="w-5 h-5 mr-2" />
                             Start Camera
                           </Button>
@@ -284,10 +300,10 @@ export default function DailyAttendancePage() {
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div
                               className={`w-72 h-72 rounded-full border-8 transition-colors duration-300 ${
-                                faceDetected ? "border-green-500" : "border-white"
+                                faceDetected ? "border-green-500" : "border-blue-500"
                               }`}
                               style={{
-                                boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.5)`,
+                                boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.6)`,
                               }}
                             />
                           </div>
@@ -304,7 +320,7 @@ export default function DailyAttendancePage() {
                   </div>
 
                   {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
+                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
                       <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                       <span>{error}</span>
                     </div>
@@ -316,7 +332,7 @@ export default function DailyAttendancePage() {
                     </Button>
                     <Button
                       onClick={captureImage}
-                      className="flex-1"
+                      className="flex-1 bg-green-500 hover:bg-green-600"
                       disabled={!isCameraActive || !faceDetected || isCapturing}
                     >
                       {isCapturing ? (
@@ -342,21 +358,21 @@ export default function DailyAttendancePage() {
           <Card className="shadow-xl">
             <CardContent className="pt-12 pb-8 text-center">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-12 h-12 text-green-600" />
+                <CheckCircle2 className="w-12 h-12 text-green-500" />
               </div>
               <h2 className="text-2xl font-bold text-green-600 mb-2">Attendance Marked Successfully!</h2>
-              <p className="text-muted-foreground mb-1">
+              <p className="text-gray-600 mb-1">
                 {attendanceType === "first-checkin"
                   ? "First check-in completed"
                   : "Second check-in completed - Full day attendance marked"}
               </p>
-              <p className="text-sm text-muted-foreground mb-6">
+              <p className="text-sm text-gray-500 mb-6">
                 {attendanceType === "first-checkin"
                   ? "Please check in again after 6 hours for full day attendance"
                   : "You have completed both check-ins for today"}
               </p>
               <div className="space-y-3">
-                <Button onClick={handleReset} className="w-full">
+                <Button onClick={handleReset} className="w-full bg-green-500 hover:bg-green-600">
                   Mark Another Attendance
                 </Button>
                 <Link href="/">
