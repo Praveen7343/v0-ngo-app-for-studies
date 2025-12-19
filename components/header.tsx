@@ -129,6 +129,12 @@ export default function Header() {
                 <div className="absolute left-0 top-full pt-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <div className="bg-white rounded-lg shadow-lg border border-border py-2 min-w-[180px]">
                     <Link
+                      href="/student/daily-attendance"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    >
+                      Daily Attendance
+                    </Link>
+                    <Link
                       href="/student/details"
                       className="block px-4 py-2 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                     >
@@ -245,6 +251,13 @@ export default function Header() {
               </button>
               {studentDropdownOpen && (
                 <div className="bg-gray-50 border-l-4 border-primary ml-4">
+                  <Link
+                    href="/student/daily-attendance"
+                    className="block px-4 py-2.5 text-sm text-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                    onClick={closeSidebar}
+                  >
+                    Daily Attendance
+                  </Link>
                   <Link
                     href="/student/details"
                     className="block px-4 py-2.5 text-sm text-foreground hover:text-primary hover:bg-primary/5 transition-colors"
