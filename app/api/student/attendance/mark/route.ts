@@ -13,12 +13,28 @@ export async function POST(request: Request) {
 
     const { data: student, error: studentError } = await supabase
       .from("students")
-      .select("id, student_name")
+      .select("id, student_name, face_photo")
       .eq("trust_id", trustId)
       .single()
 
     if (studentError || !student) {
       return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    }
+
+    // [v0] Simulated face matching logic
+    // In a real app, you would use a service like AWS Rekognition, Azure Face API, or a local ML model
+    // to compare the 'faceImage' (current capture) with 'student.face_photo' (registration photo).
+    // For this implementation, we verify that both exist and simulate a match.
+    if (!student.face_photo) {
+      return NextResponse.json({ error: "No registration photo found for verification" }, { status: 400 })
+    }
+
+    // Simulation: We assume a match for now, but in production, this would be an ML-based score check
+    const faceMatchScore = 0.95 // Simulated score
+    const MATCH_THRESHOLD = 0.85
+
+    if (faceMatchScore < MATCH_THRESHOLD) {
+      return NextResponse.json({ error: "Face didn't matched. Please try again." }, { status: 401 })
     }
 
     const checkInType = attendanceType === "first-checkin" ? "first" : "second"

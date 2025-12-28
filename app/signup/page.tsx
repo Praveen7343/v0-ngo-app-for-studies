@@ -1,12 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Camera, RefreshCcw, CheckCircle, Loader2 } from "lucide-react"
 
 export default function SignUpPage() {
   const [step, setStep] = useState(1)
@@ -14,6 +14,11 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
   const [trustId, setTrustId] = useState("")
+  const [facePhoto, setFacePhoto] = useState<string | null>(null)
+  const [isCameraActive, setIsCameraActive] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
   const [formData, setFormData] = useState({
     // Personal Information
     fullName: "",
@@ -78,7 +83,18 @@ export default function SignUpPage() {
       return
     }
 
-    // Step 3: Final submission
+    // Step 3: Face photo capture
+    if (step === 3) {
+      if (!facePhoto) {
+        setError("Please capture your face photo for attendance verification")
+        return
+      }
+      setError("")
+      setStep(4)
+      return
+    }
+
+    // Step 4: Final submission (was step 3)
     try {
       setIsLoading(true)
       setError("")
@@ -119,6 +135,7 @@ export default function SignUpPage() {
               pinNumber: formData.btechPin,
             },
           }),
+          facePhoto,
         }),
       })
 
@@ -136,6 +153,50 @@ export default function SignUpPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: 640, height: 480 },
+      })
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        setIsCameraActive(true)
+      }
+    } catch (err) {
+      setError("Unable to access camera. Please grant permissions.")
+    }
+  }
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext("2d")
+      if (ctx) {
+        ctx.drawImage(video, 0, 0)
+        const photo = canvas.toDataURL("image/jpeg")
+        setFacePhoto(photo)
+        stopCamera()
+        setError("")
+      }
+    }
+  }
+
+  const stopCamera = () => {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream
+      stream.getTracks().forEach((track) => track.stop())
+      videoRef.current.srcObject = null
+    }
+    setIsCameraActive(false)
+  }
+
+  const handleRegister = () => {
+    handleSubmit(new Event("submit"))
   }
 
   if (showSuccess) {
@@ -254,13 +315,22 @@ export default function SignUpPage() {
               >
                 3
               </div>
+              <div className={`flex-1 h-1 ${step >= 4 ? "bg-primary" : "bg-gray-200"}`}></div>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
+                  step >= 4 ? "bg-primary text-white" : "bg-gray-200 text-gray-600"
+                }`}
+              >
+                4
+              </div>
             </div>
           </div>
 
           <p className="text-center text-sm text-muted-foreground mb-6">
             {step === 1 && "Personal Information"}
             {step === 2 && "Academic Details (SSC & Diploma)"}
-            {step === 3 && "B.Tech Information (Optional)"}
+            {step === 3 && "Face Registration (Required for Attendance)"}
+            {step === 4 && "B.Tech Information (Optional)"}
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -492,7 +562,115 @@ export default function SignUpPage() {
               </div>
             )}
 
+            {/* Face capture step */}
             {step === 3 && (
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-2xl p-6 shadow-md">
+                  <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2 text-lg">
+                    <Camera className="w-6 h-6" /> Take Your Photo
+                  </h3>
+                  <p className="text-sm text-blue-800 leading-relaxed">
+                    This photo will be used to verify your identity during daily attendance. Make sure your face is
+                    clearly visible and well-lit.
+                  </p>
+                </div>
+
+                <div className="relative aspect-[3/4] max-w-md mx-auto overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border-4 border-gray-300 shadow-2xl">
+                  {/* No photo captured yet - show start button */}
+                  {!isCameraActive && !facePhoto && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-white">
+                      <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mb-6 shadow-lg">
+                        <Camera className="w-12 h-12 text-blue-600" />
+                      </div>
+                      <h4 className="text-xl font-bold text-gray-800 mb-2">Ready to take your photo?</h4>
+                      <p className="text-sm text-gray-600 mb-8 max-w-xs">
+                        Position yourself in a well-lit area and make sure your entire face is visible
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={startCamera}
+                        className="bg-blue-600 hover:bg-blue-700 h-14 px-10 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all active:scale-95"
+                      >
+                        <Camera className="w-5 h-5 mr-2" /> Start Camera
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Camera is active - show video with capture button */}
+                  {isCameraActive && (
+                    <div className="relative w-full h-full">
+                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+
+                      {/* Red oval guide for face positioning */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div
+                          className="w-56 h-72 rounded-[50%] border-[6px] border-red-500 opacity-80 shadow-[0_0_0_9999px_rgba(0,0,0,0.3)]"
+                          style={{ borderStyle: "solid" }}
+                        />
+                      </div>
+
+                      {/* Capture button at bottom */}
+                      <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4">
+                        <Button
+                          type="button"
+                          onClick={stopCamera}
+                          variant="outline"
+                          className="h-14 px-6 rounded-full shadow-xl bg-white/90 backdrop-blur border-2 hover:bg-white"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={capturePhoto}
+                          className="bg-blue-600 hover:bg-blue-700 h-14 px-10 text-lg font-bold shadow-2xl rounded-full border-4 border-white active:scale-95 transition-transform"
+                        >
+                          <Camera className="w-6 h-6 mr-2" /> Take Photo
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Photo captured - show preview with retake option */}
+                  {facePhoto && !isCameraActive && (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={facePhoto || "/placeholder.svg"}
+                        alt="Your captured photo"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                      {/* Success indicator */}
+                      <div className="absolute top-6 left-0 right-0 flex justify-center">
+                        <div className="bg-green-500 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 font-semibold">
+                          <CheckCircle className="w-5 h-5" />
+                          Photo Captured Successfully
+                        </div>
+                      </div>
+
+                      {/* Retake button */}
+                      <div className="absolute bottom-6 left-0 right-0 flex justify-center">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            setFacePhoto(null)
+                            startCamera()
+                          }}
+                          className="gap-2 bg-white hover:bg-gray-50 text-gray-800 shadow-2xl hover:shadow-xl rounded-full h-12 px-8 font-semibold border-2 border-white/50"
+                        >
+                          <RefreshCcw className="w-4 h-4" /> Retake Photo
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Hidden canvas for photo capture */}
+                <canvas ref={canvasRef} className="hidden" />
+              </div>
+            )}
+
+            {step === 4 && (
               <div className="space-y-5">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                   <p className="text-sm text-blue-800">B.Tech information is optional. Skip if not applicable.</p>
@@ -558,14 +736,41 @@ export default function SignUpPage() {
               </div>
             )}
 
-            <div className="flex gap-4 pt-4">
+            {/* Navigation buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t">
               {step > 1 && (
-                <Button type="button" variant="outline" onClick={() => setStep(step - 1)} className="flex-1">
-                  Previous
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(step - 1)}
+                  disabled={isLoading}
+                  className="flex-1 h-12 rounded-xl text-lg font-medium border-2"
+                >
+                  <ArrowLeft className="w-5 h-5 mr-2" /> Back
                 </Button>
               )}
-              <Button type="submit" className="flex-1" disabled={isLoading}>
-                {isLoading ? "Submitting..." : step === 3 ? "Submit Registration" : "Next"}
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className={`flex-1 h-12 text-lg font-bold shadow-lg rounded-xl transition-all ${
+                  step === 4 ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : step === 1 ? (
+                  "Continue to Education Details"
+                ) : step === 2 ? (
+                  "Continue to Photo Capture"
+                ) : step === 3 ? (
+                  "Continue to Review"
+                ) : (
+                  "Complete Registration"
+                )}
               </Button>
             </div>
           </form>

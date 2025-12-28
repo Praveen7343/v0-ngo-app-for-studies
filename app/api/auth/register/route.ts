@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         mobile_number: data.mobileNumber,
         email_id: data.emailId,
         address: data.address,
+        face_photo: data.facePhoto, // Save the reference photo from signup
       })
       .select()
       .single()

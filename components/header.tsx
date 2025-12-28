@@ -3,7 +3,20 @@
 import type React from "react"
 
 import { Button } from "@/components/ui/button"
-import { Menu, X, Phone, ChevronDown, Home, UserPlus, GraduationCap, LogIn, Info, TrendingUp, Mail } from "lucide-react"
+import {
+  Menu,
+  X,
+  Phone,
+  ChevronDown,
+  Home,
+  UserPlus,
+  GraduationCap,
+  LogIn,
+  Info,
+  TrendingUp,
+  Mail,
+  Settings,
+} from "lucide-react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -158,6 +171,15 @@ export default function Header() {
                     >
                       Fee Application
                     </Link>
+                    <div className="border-t border-border mt-2 pt-2">
+                      <Link
+                        href="/settings"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-primary/10 hover:text-primary transition-colors font-medium"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Settings
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -329,6 +351,16 @@ export default function Header() {
               <Mail className="w-5 h-5" />
               <span className="font-medium">Contact Us</span>
             </a>
+
+            {/* Settings */}
+            <Link
+              href="/settings"
+              className="flex items-center gap-3 px-4 py-3 text-primary hover:bg-primary/5 transition-colors border-t border-border mt-2"
+              onClick={closeSidebar}
+            >
+              <Settings className="w-5 h-5" />
+              <span className="font-medium">Settings</span>
+            </Link>
           </nav>
         </div>
       </div>

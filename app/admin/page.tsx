@@ -6,7 +6,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { LogOut, Search, ChevronDown, ChevronUp, CheckCircle, Clock, FileText, X, Send } from "lucide-react"
+import { LogOut, Search, ChevronDown, ChevronUp, CheckCircle, Clock, FileText, X, Send, User } from "lucide-react"
 
 interface AcademicDetail {
   level: string
@@ -32,6 +32,7 @@ interface StudentData {
   created_at: string
   login_time: string | null
   has_logged_in: boolean
+  face_photo?: string | null
 }
 
 interface FeeApplication {
@@ -82,7 +83,7 @@ export default function AdminDashboard() {
         const { createClient } = await import("@/lib/supabase/client")
         const supabase = createClient()
 
-        const { data: studentData, error: studentsError } = await supabase.from("students").select("*")
+        const { data: studentData, error: studentsError } = await supabase.from("students").select("*, face_photo")
         if (studentsError) throw studentsError
 
         const formattedStudents = studentData.map((student: any) => ({
@@ -96,6 +97,7 @@ export default function AdminDashboard() {
           date_of_birth: student.date_of_birth || "-",
           gender: student.gender || "-",
           address: student.address || "-",
+          face_photo: student.face_photo,
           academic_details: [],
           created_at: student.created_at,
           login_time: student.login_time,
@@ -405,88 +407,120 @@ export default function AdminDashboard() {
                   <div key={group} className="space-y-3">
                     <h2 className="text-lg font-bold text-gray-800 border-b border-gray-200 pb-2">{group}</h2>
                     {groupedStudents[group].map((student) => (
-                      <div key={student.id} className="bg-white rounded-lg shadow overflow-hidden">
-                        <div
-                          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                          onClick={() => setExpandedStudent(expandedStudent === student.id ? null : student.id)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-semibold text-gray-900">{student.student_name}</h3>
-                                {student.has_logged_in ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                    <CheckCircle className="w-3 h-3" /> Active
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
-                                    <Clock className="w-3 h-3" /> Not logged in
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600">Trust ID: {student.trust_id}</p>
-                            </div>
-                            <button className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0">
-                              {expandedStudent === student.id ? (
-                                <ChevronUp className="w-5 h-5 text-gray-600" />
+                      <div
+                        key={student.id}
+                        className="group bg-white rounded-xl border border-gray-100 p-5 hover:border-blue-200 hover:shadow-md transition-all animate-in fade-in slide-in-from-bottom-2 duration-300"
+                      >
+                        <div className="flex flex-col sm:flex-row items-start gap-6">
+                          <div className="relative flex-shrink-0">
+                            <div className="w-24 h-32 rounded-lg bg-gray-100 overflow-hidden ring-2 ring-gray-100 shadow-sm transition-transform group-hover:scale-[1.02]">
+                              {student.face_photo ? (
+                                <img
+                                  src={student.face_photo || "/placeholder.svg"}
+                                  alt={student.student_name}
+                                  className="w-full h-full object-cover"
+                                />
                               ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-600" />
+                                <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
+                                  <User className="w-8 h-8" />
+                                </div>
                               )}
-                            </button>
-                          </div>
-                        </div>
-
-                        {expandedStudent === student.id && (
-                          <div className="border-t border-gray-200 bg-gray-50 p-4">
-                            <h4 className="font-semibold text-gray-900 mb-3">Personal Information</h4>
-                            <div className="grid grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <span className="text-gray-500">Father:</span> {student.father_name}
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Mother:</span> {student.mother_name}
-                              </div>
-                              <div>
-                                <span className="text-gray-500">DOB:</span> {student.date_of_birth}
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Gender:</span> {student.gender}
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Mobile:</span> {student.mobile_number}
-                              </div>
-                              <div>
-                                <span className="text-gray-500">Email:</span> {student.email_id}
-                              </div>
                             </div>
-                            {student.academic_details.length > 0 && (
-                              <div className="mt-4">
-                                <h4 className="font-semibold text-gray-900 mb-3">Academic Details</h4>
-                                {student.academic_details.map((detail, idx) => (
-                                  <div key={idx} className="bg-white p-3 rounded border mb-2">
-                                    <p className="font-medium text-primary">{detail.level}</p>
-                                    <div className="grid grid-cols-2 gap-2 text-sm mt-1">
-                                      <div>
-                                        <span className="text-gray-500">School:</span> {detail.schoolName}
-                                      </div>
-                                      <div>
-                                        <span className="text-gray-500">Board/Branch:</span> {detail.boardBranch}
-                                      </div>
-                                      <div>
-                                        <span className="text-gray-500">Year:</span> {detail.yearOfStudying}
-                                      </div>
-                                      <div>
-                                        <span className="text-gray-500">Percentage:</span> {detail.percentage}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
+                            {student.face_photo && (
+                              <div className="absolute -bottom-2 -right-2 bg-green-500 text-white p-1 rounded-full border-2 border-white shadow-sm">
+                                <CheckCircle className="w-4 h-4" />
                               </div>
                             )}
                           </div>
-                        )}
+
+                          <div className="flex-1 min-w-0 space-y-3">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold text-gray-900">{student.student_name}</h3>
+                              {student.has_logged_in ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                  <CheckCircle className="w-3 h-3" /> Active
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
+                                  <Clock className="w-3 h-3" /> Not logged in
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600">Trust ID: {student.trust_id}</p>
+                          </div>
+                        </div>
+                        <button
+                          className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0"
+                          onClick={() => setExpandedStudent(expandedStudent === student.id ? null : student.id)}
+                        >
+                          {expandedStudent === student.id ? (
+                            <ChevronUp className="w-5 h-5 text-gray-600" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-gray-600" />
+                          )}
+                        </button>
                       </div>
                     ))}
+                    {expandedStudent &&
+                      groupedStudents[expandedStudent].map((student) => (
+                        <div key={student.id} className="border-t border-gray-200 bg-gray-50 p-4">
+                          <h4 className="font-semibold text-gray-900 mb-3">Personal Information</h4>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-gray-500">Father:</span> {student.father_name}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Mother:</span> {student.mother_name}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">DOB:</span> {student.date_of_birth}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Gender:</span> {student.gender}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Mobile:</span> {student.mobile_number}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Email:</span> {student.email_id}
+                            </div>
+                          </div>
+                          {student.face_photo && (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <h4 className="font-semibold text-gray-900 mb-3">Registration Photo</h4>
+                              <img
+                                src={student.face_photo || "/placeholder.svg"}
+                                alt="Student Registration"
+                                className="w-48 h-48 object-cover rounded-lg border shadow-sm"
+                              />
+                            </div>
+                          )}
+                          {student.academic_details.length > 0 && (
+                            <div className="mt-4">
+                              <h4 className="font-semibold text-gray-900 mb-3">Academic Details</h4>
+                              {student.academic_details.map((detail, idx) => (
+                                <div key={idx} className="bg-white p-3 rounded border mb-2">
+                                  <p className="font-medium text-primary">{detail.level}</p>
+                                  <div className="grid grid-cols-2 gap-2 text-sm mt-1">
+                                    <div>
+                                      <span className="text-gray-500">School:</span> {detail.schoolName}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Board/Branch:</span> {detail.boardBranch}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Year:</span> {detail.yearOfStudying}
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Percentage:</span> {detail.percentage}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                   </div>
                 ))
               ) : (
@@ -545,7 +579,10 @@ export default function AdminDashboard() {
                             Accept
                           </Button>
                         )}
-                        <button className="p-2 hover:bg-gray-100 rounded-full">
+                        <button
+                          className="p-2 hover:bg-gray-100 rounded-full"
+                          onClick={() => setExpandedApplication(expandedApplication === app.id ? null : app.id)}
+                        >
                           {expandedApplication === app.id ? (
                             <ChevronUp className="w-5 h-5 text-gray-600" />
                           ) : (

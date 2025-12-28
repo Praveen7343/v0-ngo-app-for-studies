@@ -76,6 +76,7 @@ export default function DailyAttendancePage() {
       setAttendanceType(data.attendanceType)
       setLastCheckInTime(data.lastCheckIn ? new Date(data.lastCheckIn) : null)
       setStep("face-capture")
+      setError("") // clear error
     } catch {
       setError("Failed to verify Trust ID. Please try again.")
     } finally {
@@ -139,7 +140,7 @@ export default function DailyAttendancePage() {
         const data = await response.json()
 
         if (!response.ok) {
-          setError(data.error || "Failed to mark attendance")
+          setError(data.error || "Face didn't matched. Please try again.")
           setIsCapturing(false)
           return
         }
@@ -296,14 +297,13 @@ export default function DailyAttendancePage() {
                             muted
                             className="absolute inset-0 w-full h-full object-cover rounded-lg"
                           />
-                          {/* Circular overlay */}
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                             <div
-                              className={`w-72 h-72 rounded-full border-8 transition-colors duration-300 ${
-                                faceDetected ? "border-green-500" : "border-blue-500"
+                              className={`w-72 h-80 rounded-[100px] border-4 transition-all duration-300 ${
+                                faceDetected ? "border-green-500" : "border-red-500"
                               }`}
                               style={{
-                                boxShadow: `0 0 0 9999px rgba(0, 0, 0, 0.6)`,
+                                boxShadow: `0 0 0 9999px rgba(255, 255, 255, 0.4)`,
                               }}
                             />
                           </div>
