@@ -241,6 +241,20 @@ export default function SignUpPage() {
               </ul>
             </div>
 
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-900 mb-1">Confirmation Sent!</p>
+                  <p className="text-xs text-green-800">
+                    You will receive a confirmation email and SMS shortly on your registered email and phone number. Please check your inbox and messages.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-yellow-800">
                 <strong>Next Step:</strong> Use your full name and Trust ID to access student services

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
+import { triggerRegistrationNotifications } from "@/lib/services/notification.service"
 
 async function generateTrustId(supabase: any, yearOfJoining: string, dateOfBirth: string): Promise<string> {
   // Get last 2 digits of joining year (e.g., 2024 -> 24)
@@ -105,7 +106,30 @@ export async function POST(request: NextRequest) {
       if (academicError) throw academicError
     }
 
-    return NextResponse.json({ success: true, trustId: student.trust_id, studentId: student.id }, { status: 201 })
+    // Trigger email and SMS notifications asynchronously (non-blocking)
+    // Fire and forget - don't await this
+    triggerRegistrationNotifications({
+      studentName: data.fullName,
+      emailId: data.emailId,
+      mobileNumber: data.mobileNumber,
+      trustId: student.trust_id,
+      registrationTime: new Date().toISOString(),
+    }).then(() => {
+      console.log("[v0] Notifications triggered for student:", student.trust_id)
+    }).catch((error) => {
+      console.error("[v0] Error triggering notifications:", error)
+      // Don't fail the registration if notifications fail
+    })
+
+    return NextResponse.json(
+      {
+        success: true,
+        trustId: student.trust_id,
+        studentId: student.id,
+        message: "Registration successful! You will receive a confirmation email and SMS shortly.",
+      },
+      { status: 201 }
+    )
   } catch (error: any) {
     console.error("[v0] Registration error:", error)
     return NextResponse.json({ success: false, error: error.message }, { status: 400 })
