@@ -68,7 +68,10 @@ export default function SettingsPage() {
                     <Label>Theme</Label>
                     <p className="text-sm text-muted-foreground">Switch between light and dark mode.</p>
                   </div>
-                  <Select value={theme} onValueChange={setTheme}>
+                  <Select value={theme || "system"} onValueChange={(value) => {
+                    setTheme(value)
+                    toast.success(`Theme changed to ${value}`)
+                  }}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select theme" />
                     </SelectTrigger>
