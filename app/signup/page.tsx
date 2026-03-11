@@ -599,146 +599,6 @@ export default function SignUpPage() {
               </div>
             )}
 
-                  {/* Camera is active - show video with capture button */}
-                  {isCameraActive && (
-                    <div className="relative w-full h-full">
-                      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-
-                      {/* Red oval guide for face positioning */}
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div
-                          className="w-56 h-72 rounded-[50%] border-[6px] border-red-500 opacity-80 shadow-[0_0_0_9999px_rgba(0,0,0,0.3)]"
-                          style={{ borderStyle: "solid" }}
-                        />
-                      </div>
-
-                      {/* Capture button at bottom */}
-                      <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-4">
-                        <Button
-                          type="button"
-                          onClick={stopCamera}
-                          variant="outline"
-                          className="h-14 px-6 rounded-full shadow-xl bg-white/90 backdrop-blur border-2 hover:bg-white"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={capturePhoto}
-                          className="bg-blue-600 hover:bg-blue-700 h-14 px-10 text-lg font-bold shadow-2xl rounded-full border-4 border-white active:scale-95 transition-transform"
-                        >
-                          <Camera className="w-6 h-6 mr-2" /> Take Photo
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Photo captured - show preview with retake option */}
-                  {facePhoto && !isCameraActive && (
-                    <div className="relative w-full h-full">
-                      <img
-                        src={facePhoto || "/placeholder.svg"}
-                        alt="Your captured photo"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-
-                      {/* Success indicator */}
-                      <div className="absolute top-6 left-0 right-0 flex justify-center">
-                        <div className="bg-green-500 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-2 font-semibold">
-                          <CheckCircle className="w-5 h-5" />
-                          Photo Captured Successfully
-                        </div>
-                      </div>
-
-                      {/* Retake button */}
-                      <div className="absolute bottom-6 left-0 right-0 flex justify-center">
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            setFacePhoto(null)
-                            startCamera()
-                          }}
-                          className="gap-2 bg-white hover:bg-gray-50 text-gray-800 shadow-2xl hover:shadow-xl rounded-full h-12 px-8 font-semibold border-2 border-white/50"
-                        >
-                          <RefreshCcw className="w-4 h-4" /> Retake Photo
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Hidden canvas for photo capture */}
-                <canvas ref={canvasRef} className="hidden" />
-              </div>
-            )}
-
-            {step === 4 && (
-              <div className="space-y-5">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <p className="text-sm text-blue-800">B.Tech information is optional. Skip if not applicable.</p>
-                </div>
-
-                <h3 className="font-semibold text-lg text-foreground">B.Tech (Optional)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">College Name</label>
-                    <Input
-                      name="btechCollegeName"
-                      value={formData.btechCollegeName}
-                      onChange={handleInputChange}
-                      placeholder="Enter college name"
-                      className="w-full border-border"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">Branch</label>
-                    <Input
-                      name="btechBranch"
-                      value={formData.btechBranch}
-                      onChange={handleInputChange}
-                      placeholder="Enter branch"
-                      className="w-full border-border"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">Year of Studying</label>
-                    <Input
-                      name="btechYearOfStudying"
-                      value={formData.btechYearOfStudying}
-                      onChange={handleInputChange}
-                      placeholder="Enter year"
-                      className="w-full border-border"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-foreground">PIN Number</label>
-                    <Input
-                      name="btechPin"
-                      value={formData.btechPin}
-                      onChange={handleInputChange}
-                      placeholder="Enter PIN number"
-                      className="w-full border-border"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-foreground">CGPA/Percentage</label>
-                  <Input
-                    name="btechCgpaPercentage"
-                    value={formData.btechCgpaPercentage}
-                    onChange={handleInputChange}
-                    placeholder="Enter CGPA or percentage"
-                    className="w-full border-border"
-                  />
-                </div>
-              </div>
-            )}
-
             {/* Navigation buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t">
               {step > 1 && (
@@ -757,7 +617,7 @@ export default function SignUpPage() {
                 type="submit"
                 disabled={isLoading}
                 className={`flex-1 h-12 text-lg font-bold shadow-lg rounded-xl transition-all ${
-                  step === 4 ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
+                  step === 3 ? "bg-green-600 hover:bg-green-700 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"
                 }`}
               >
                 {isLoading ? (
@@ -768,9 +628,7 @@ export default function SignUpPage() {
                 ) : step === 1 ? (
                   "Continue to Education Details"
                 ) : step === 2 ? (
-                  "Continue to Photo Capture"
-                ) : step === 3 ? (
-                  "Continue to Review"
+                  "Review & Complete Registration"
                 ) : (
                   "Complete Registration"
                 )}
