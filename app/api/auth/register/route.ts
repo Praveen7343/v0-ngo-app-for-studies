@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
-import { triggerRegistrationNotifications } from "@/lib/services/notification.service"
 
 async function generateTrustId(supabase: any, yearOfJoining: string, dateOfBirth: string): Promise<string> {
   // Get last 2 digits of joining year (e.g., 2024 -> 24)
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
         mobile_number: data.mobileNumber,
         email_id: data.emailId,
         address: data.address,
-        face_photo: data.facePhoto, // Save the reference photo from signup
+        // face_photo is now optional - can be added later for attendance verification
       })
       .select()
       .single()
@@ -106,20 +105,9 @@ export async function POST(request: NextRequest) {
       if (academicError) throw academicError
     }
 
-    // Trigger email and SMS notifications asynchronously (non-blocking)
-    // Fire and forget - don't await this
-    triggerRegistrationNotifications({
-      studentName: data.fullName,
-      emailId: data.emailId,
-      mobileNumber: data.mobileNumber,
-      trustId: student.trust_id,
-      registrationTime: new Date().toISOString(),
-    }).then(() => {
-      console.log("[v0] Notifications triggered for student:", student.trust_id)
-    }).catch((error) => {
-      console.error("[v0] Error triggering notifications:", error)
-      // Don't fail the registration if notifications fail
-    })
+    // In a production setup, you would trigger email/SMS notifications here
+    // For now, registrations complete without sending notifications
+    console.log("[v0] Student registered with Trust ID:", student.trust_id)
 
     return NextResponse.json(
       {

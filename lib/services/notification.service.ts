@@ -21,7 +21,7 @@ interface NotificationPayload {
 export async function triggerRegistrationNotifications(payload: NotificationPayload): Promise<void> {
   // Fire and forget - don't await these promises
   // This ensures the API responds quickly to the user
-  Promise.all([
+  return Promise.all([
     sendWelcomeEmail({
       to: payload.emailId,
       studentName: payload.studentName,
